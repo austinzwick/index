@@ -8,7 +8,8 @@
 <meta name="author" content="Austin Zwick">
 <meta property="og:type" content="profile">
 <meta property="og:title" content="Austin Zwick">
-<meta property="og:description" content="Urban governance scholar at Syracuse University’s Maxwell School. Author of Built for No One.">
+<meta property="og:description" content="Urban governance scholar at Syracuse University’s College of Professional Studies and Maxwell School. Author of Built for No One.">
+<meta property="og:image" content="austin-zwick.jpg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏙️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,10 +21,11 @@
   "name": "Austin Zwick",
   "jobTitle": "Associate Teaching Professor of Policy Studies",
   "email": "mailto:alzwick@syr.edu",
-  "affiliation": {
-    "@type": "CollegeOrUniversity",
-    "name": "Maxwell School of Citizenship and Public Affairs, Syracuse University"
-  },
+  "image": "austin-zwick.jpg",
+  "affiliation": [
+    {"@type": "CollegeOrUniversity", "name": "College of Professional Studies, Syracuse University"},
+    {"@type": "CollegeOrUniversity", "name": "Maxwell School of Citizenship and Public Affairs, Syracuse University"}
+  ],
   "alumniOf": [
     {"@type": "CollegeOrUniversity", "name": "University of Toronto"},
     {"@type": "CollegeOrUniversity", "name": "Cornell University"}
@@ -80,7 +82,23 @@
   .top nav a:hover { color: var(--navy); }
 
   /* Intro */
-  header.intro { padding: 3.5rem 0 3rem; }
+  header.intro {
+    padding: 3.5rem 0 3rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0 2.5rem;
+    align-items: start;
+  }
+  .intro-text { min-width: 0; }
+  .headshot {
+    width: 10.5rem;
+    height: 10.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--white);
+    box-shadow: 0 0 0 3px var(--orange);
+    margin-top: 0.25rem;
+  }
   h1 {
     font-family: var(--serif);
     font-weight: 700;
@@ -169,7 +187,8 @@
 
   @media (max-width: 34rem) {
     body { font-size: 1rem; }
-    header.intro { padding: 2.5rem 0 2.25rem; }
+    header.intro { padding: 2.5rem 0 2.25rem; grid-template-columns: 1fr; }
+    .headshot { order: -1; width: 7.5rem; height: 7.5rem; margin: 0 0 1.5rem; }
     .lede { font-size: 1.1875rem; }
     .book-inner { padding-left: 1.25rem; }
   }
@@ -189,9 +208,11 @@
 
 <main class="wrap">
   <header class="intro">
+    <img class="headshot" src="austin-zwick.jpg" alt="Portrait of Austin Zwick" width="400" height="400">
+    <div class="intro-text">
     <h1>Austin Zwick</h1>
     <p class="lede">I study what happens when a new technology reaches a city before the rules do.</p>
-    <p class="role">Associate Teaching Professor of Policy Studies, Maxwell School of Citizenship and Public Affairs, Syracuse University</p>
+    <p class="role">Associate Teaching Professor of Policy Studies<br>College of Professional Studies &amp; Maxwell School of Citizenship and Public Affairs<br>Syracuse University</p>
     <ul class="links">
       <li><a href="mailto:alzwick@syr.edu">alzwick@syr.edu</a></li>
       <li><a href="https://scholar.google.com/citations?user=JUbh0cQAAAAJ&amp;hl=en">Google Scholar</a></li>
@@ -199,6 +220,7 @@
       <li><a href="https://www.linkedin.com/in/austin-zwick-phd/">LinkedIn</a></li>
       <li><a href="https://www.maxwell.syr.edu/directory/austin-zwick">Maxwell faculty page</a></li>
     </ul>
+    </div>
   </header>
 
   <section class="book" id="book" aria-labelledby="book-title">
@@ -216,7 +238,7 @@
     <h2 id="about-title">About</h2>
     <p>A new industry arrives in a city before anyone has written the rules for it. Over my career I have studied that moment with fracking in Appalachia, Uber and Lyft, food delivery apps, sidewalk delivery robots, billion-dollar smart city megaprojects, and now artificial intelligence. The technologies differ. The pattern repeats. A company shows up with a product, residents feel the effects first, and city hall is left to respond with tools built for a different era.</p>
     <p>My research asks how cities make those decisions, why some adapt well, and why others are left cleaning up afterward. I draw on interviews with officials, policy documents, surveys of local politicians, and comparative datasets covering more than a hundred cities worldwide.</p>
-    <p>I am an Associate Teaching Professor at Syracuse University’s Maxwell School of Citizenship and Public Affairs, where I direct the online Bachelor of Professional Studies in Policy Studies. Many of my students are working adults finishing a degree while holding down a job, and they keep my work grounded. I hold a PhD in Planning from the University of Toronto and a Master of Public Administration from Cornell. I have published more than thirty articles, chapters and reports in outlets including <i>Urban Affairs Review</i>, the <i>Journal of the American Planning Association</i>, <i>Cities</i> and <i>Planning Theory &amp; Practice</i>, and I serve as Area Editor for Digital and Data-Driven Transformations in Governance at <i>Data &amp; Policy</i>.</p>
+    <p>I am an Associate Teaching Professor at Syracuse University, cross-appointed to the College of Professional Studies and the Maxwell School of Citizenship and Public Affairs, and I direct the online Bachelor of Professional Studies in Policy Studies. Many of my students are working adults finishing a degree while holding down a job, and they keep my work grounded. I hold a PhD in Planning from the University of Toronto and a Master of Public Administration from Cornell. I have published more than thirty articles, chapters and reports in outlets including <i>Urban Affairs Review</i>, the <i>Journal of the American Planning Association</i>, <i>Cities</i> and <i>Planning Theory &amp; Practice</i>, and I serve as Area Editor for Digital and Data-Driven Transformations in Governance at <i>Data &amp; Policy</i>.</p>
     <p>I live in Vancouver, a city that argues about housing the way other cities argue about sports. I am also a Buffalo Bills fan, so I know something about watching big plans fall apart.</p>
   </section>
 
