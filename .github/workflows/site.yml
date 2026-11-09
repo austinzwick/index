@@ -42,7 +42,7 @@ jobs:
       - name: Add latest Substack posts
         run: |
           python3 - <<'PY'
-          import html, os, re, urllib.request
+          import html, json, os, re, urllib.parse, urllib.request
           import xml.etree.ElementTree as ET
 
           base = os.environ["SUBSTACK_URL"].rstrip("/")
@@ -53,53 +53,93 @@ jobs:
 
           CONTENT = "{http://purl.org/rss/1.0/modules/content/}encoded"
           MEDIA = "{http://search.yahoo.com/mrss/}content"
+          HEADERS = {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                            "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+              "Accept": "application/rss+xml, application/xml, application/json, */*",
+          }
+
+          def get(url):
+              req = urllib.request.Request(url, headers=HEADERS)
+              return urllib.request.urlopen(req, timeout=30).read()
 
           def plain(text, limit=180):
               text = html.unescape(re.sub(r"<[^>]+>", " ", text or ""))
               text = re.sub(r"\s+", " ", text).strip()
               return text if len(text) <= limit else text[:limit].rsplit(" ", 1)[0] + "…"
 
-          def image_for(item):
-              enc = item.find("enclosure")
-              if enc is not None and enc.get("type", "").startswith("image"):
-                  return enc.get("url")
-              media = item.find(MEDIA)
-              if media is not None and media.get("url"):
-                  return media.get("url")
-              m = re.search(r'<img[^>]+src="([^"]+)"', item.findtext(CONTENT) or "")
+          def first_img(markup):
+              m = re.search(r'<img[^>]+src="([^"]+)"', markup or "")
               return m.group(1) if m else ""
 
-          try:
-              req = urllib.request.Request(base + "/feed", headers={"User-Agent": "Mozilla/5.0 (site build)"})
-              root = ET.fromstring(urllib.request.urlopen(req, timeout=30).read())
-              rows = []
+          def from_substack():
+              root = ET.fromstring(get(base + "/feed"))
+              posts = []
               for item in root.iter("item"):
-                  title = plain(item.findtext("title"), 200)
-                  link = (item.findtext("link") or "").strip()
-                  if not title or not link:
-                      continue
-                  sub = plain(item.findtext("description"))
-                  img = image_for(item)
-                  e = html.escape
-                  rows.append(
-                      f'      <li><a class="post" href="{e(link)}">'
-                      + (f'<img class="post-img" src="{e(img)}" alt="" loading="lazy">' if img
-                         else '<span class="post-img post-img-empty" aria-hidden="true"></span>')
-                      + f'<span class="post-text"><span class="post-title">{e(title)}</span>'
-                      + (f'<span class="post-sub">{e(sub)}</span>' if sub else "")
-                      + "</span></a></li>"
-                  )
-                  if len(rows) == count:
-                      break
-              if rows:
-                  block = '<ul class="posts">\n' + "\n".join(rows) + "\n    </ul>"
-                  page = re.sub(r"<!-- SUBSTACK:START -->.*?<!-- SUBSTACK:END -->",
-                                lambda m: f"<!-- SUBSTACK:START -->\n    {block}\n    <!-- SUBSTACK:END -->",
-                                page, flags=re.S)
-                  print(f"Added {len(rows)} posts")
-          except Exception as e:
-              # Never block publishing over the feed; the page keeps its fallback link.
-              print(f"Could not load Substack feed: {e}")
+                  img = ""
+                  enc = item.find("enclosure")
+                  media = item.find(MEDIA)
+                  if enc is not None and enc.get("type", "").startswith("image"):
+                      img = enc.get("url")
+                  elif media is not None and media.get("url"):
+                      img = media.get("url")
+                  else:
+                      img = first_img(item.findtext(CONTENT))
+                  posts.append({"title": item.findtext("title"), "link": item.findtext("link"),
+                                "sub": item.findtext("description"), "img": img})
+              return posts
+
+          def from_rss2json():
+              api = "https://api.rss2json.com/v1/api.json?rss_url=" + urllib.parse.quote(base + "/feed", safe="")
+              data = json.loads(get(api))
+              if data.get("status") != "ok":
+                  raise RuntimeError(data.get("message", "rss2json returned an error"))
+              posts = []
+              for item in data.get("items", []):
+                  enc = item.get("enclosure") or {}
+                  img = item.get("thumbnail") or (enc.get("link") if str(enc.get("type", "")).startswith("image") else "") \
+                        or first_img(item.get("content"))
+                  posts.append({"title": item.get("title"), "link": item.get("link"),
+                                "sub": item.get("description"), "img": img})
+              return posts
+
+          posts = []
+          for name, source in (("Substack", from_substack), ("rss2json", from_rss2json)):
+              try:
+                  posts = source()
+                  print(f"Loaded feed from {name}: {len(posts)} posts")
+                  break
+              except Exception as e:
+                  print(f"Could not load feed from {name}: {e}")
+
+          rows = []
+          e = html.escape
+          for post in posts:
+              title = plain(post["title"], 200)
+              link = (post["link"] or "").strip()
+              if not title or not link:
+                  continue
+              sub = plain(post["sub"])
+              img = post["img"]
+              rows.append(
+                  f'      <li><a class="post" href="{e(link)}">'
+                  + (f'<img class="post-img" src="{e(img)}" alt="" loading="lazy">' if img
+                     else '<span class="post-img post-img-empty" aria-hidden="true"></span>')
+                  + f'<span class="post-text"><span class="post-title">{e(title)}</span>'
+                  + (f'<span class="post-sub">{e(sub)}</span>' if sub else "")
+                  + "</span></a></li>"
+              )
+              if len(rows) == count:
+                  break
+
+          if rows:
+              block = '<ul class="posts">\n' + "\n".join(rows) + "\n    </ul>"
+              page = re.sub(r"<!-- SUBSTACK:START -->.*?<!-- SUBSTACK:END -->",
+                            lambda m: f"<!-- SUBSTACK:START -->\n    {block}\n    <!-- SUBSTACK:END -->",
+                            page, flags=re.S)
+              print(f"Added {len(rows)} posts")
+          else:
+              print("No posts added; the page keeps its fallback link")
 
           open(path, "w", encoding="utf-8").write(page)
           PY
