@@ -1,0 +1,114 @@
+# Builds and publishes austinzwick.com.
+# Runs on every commit, once a day, and on demand (Actions tab > Run workflow).
+# Each run pulls the latest Substack posts into the page before publishing.
+
+name: Build and deploy site
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 14 * * *"   # daily, 14:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  # The only line to change if the Substack address changes.
+  SUBSTACK_URL: https://austinzwick.substack.com
+  POST_COUNT: "3"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy site files
+        run: |
+          mkdir _site
+          rsync -a --exclude '.git' --exclude '.github' --exclude '_site' ./ _site/
+
+      - name: Add latest Substack posts
+        run: |
+          python3 - <<'PY'
+          import html, os, re, urllib.request
+          import xml.etree.ElementTree as ET
+
+          base = os.environ["SUBSTACK_URL"].rstrip("/")
+          count = int(os.environ.get("POST_COUNT", "3"))
+          path = "_site/index.html"
+          page = open(path, encoding="utf-8").read()
+          page = page.replace("SUBSTACK_URL", base)
+
+          CONTENT = "{http://purl.org/rss/1.0/modules/content/}encoded"
+          MEDIA = "{http://search.yahoo.com/mrss/}content"
+
+          def plain(text, limit=180):
+              text = html.unescape(re.sub(r"<[^>]+>", " ", text or ""))
+              text = re.sub(r"\s+", " ", text).strip()
+              return text if len(text) <= limit else text[:limit].rsplit(" ", 1)[0] + "…"
+
+          def image_for(item):
+              enc = item.find("enclosure")
+              if enc is not None and enc.get("type", "").startswith("image"):
+                  return enc.get("url")
+              media = item.find(MEDIA)
+              if media is not None and media.get("url"):
+                  return media.get("url")
+              m = re.search(r'<img[^>]+src="([^"]+)"', item.findtext(CONTENT) or "")
+              return m.group(1) if m else ""
+
+          try:
+              req = urllib.request.Request(base + "/feed", headers={"User-Agent": "Mozilla/5.0 (site build)"})
+              root = ET.fromstring(urllib.request.urlopen(req, timeout=30).read())
+              rows = []
+              for item in root.iter("item"):
+                  title = plain(item.findtext("title"), 200)
+                  link = (item.findtext("link") or "").strip()
+                  if not title or not link:
+                      continue
+                  sub = plain(item.findtext("description"))
+                  img = image_for(item)
+                  e = html.escape
+                  rows.append(
+                      f'      <li><a class="post" href="{e(link)}">'
+                      + (f'<img class="post-img" src="{e(img)}" alt="" loading="lazy">' if img
+                         else '<span class="post-img post-img-empty" aria-hidden="true"></span>')
+                      + f'<span class="post-text"><span class="post-title">{e(title)}</span>'
+                      + (f'<span class="post-sub">{e(sub)}</span>' if sub else "")
+                      + "</span></a></li>"
+                  )
+                  if len(rows) == count:
+                      break
+              if rows:
+                  block = '<ul class="posts">\n' + "\n".join(rows) + "\n    </ul>"
+                  page = re.sub(r"<!-- SUBSTACK:START -->.*?<!-- SUBSTACK:END -->",
+                                lambda m: f"<!-- SUBSTACK:START -->\n    {block}\n    <!-- SUBSTACK:END -->",
+                                page, flags=re.S)
+                  print(f"Added {len(rows)} posts")
+          except Exception as e:
+              # Never block publishing over the feed; the page keeps its fallback link.
+              print(f"Could not load Substack feed: {e}")
+
+          open(path, "w", encoding="utf-8").write(page)
+          PY
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
