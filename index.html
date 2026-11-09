@@ -166,6 +166,47 @@
   .reading .meta { color: var(--muted); font-size: 0.9375rem; margin: 0.25rem 0 0.35rem; }
   .reading .what { margin: 0; font-size: 1rem; }
 
+  /* Substack */
+  .writing { border-top: none; padding: 0 0 3rem; }
+  .writing h2 { font-size: 1.375rem; margin-bottom: 0.75rem; }
+  .posts { list-style: none; margin: 1.25rem 0 1.5rem; padding: 0; }
+  .posts li { border-top: 1px solid var(--rule); }
+  .posts li:last-child { border-bottom: 1px solid var(--rule); }
+  .post {
+    display: flex;
+    gap: 1.25rem;
+    align-items: center;
+    padding: 1rem 0;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .post-img {
+    flex: none;
+    width: 9rem;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: 3px;
+    background: var(--rule);
+  }
+  .post-img-empty { display: block; background: linear-gradient(to top, var(--orange) 0 6px, var(--navy) 6px); }
+  .post-text { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+  .post-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.1875rem;
+    line-height: 1.25;
+    color: var(--navy);
+  }
+  .post-sub { font-size: 0.9375rem; line-height: 1.5; color: var(--muted); }
+  .post:hover .post-title { color: var(--orange); }
+  .post:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+  @media (max-width: 34rem) {
+    .post { gap: 1rem; align-items: flex-start; }
+    .post-img { width: 6.5rem; }
+    .post-title { font-size: 1.0625rem; }
+  }
+  .subscribe { font-weight: 600; }
+
   .books-list { margin: 0; padding: 0; list-style: none; }
   .books-list li { margin-bottom: 0.9rem; }
   .books-list li:last-child { margin-bottom: 0; }
@@ -199,6 +240,7 @@
   <div class="wrap">
     <nav aria-label="Sections">
       <a href="#book">Book</a>
+      <a href="#writing">Substack</a>
       <a href="#about">About</a>
       <a href="#reading">Free to read</a>
       <a href="#cv">CV</a>
@@ -234,6 +276,15 @@
     </div>
   </section>
 
+  <section id="writing" class="writing" aria-labelledby="writing-title">
+    <h2 id="writing-title">Back to the Rough Ground</h2>
+    <p>My Substack. Old stories, new cities: myth and philosophy held up against the projects, technologies and promises reshaping where we live, then checked against the evidence. The newest posts appear here automatically.</p>
+    <!-- SUBSTACK:START -->
+    <p><a href="SUBSTACK_URL">Read the latest posts</a></p>
+    <!-- SUBSTACK:END -->
+    <p><a class="subscribe" href="SUBSTACK_URL/subscribe">Subscribe for free →</a></p>
+  </section>
+
   <section id="about" aria-labelledby="about-title">
     <h2 id="about-title">About</h2>
     <p>A new industry arrives in a city before anyone has written the rules for it. Over my career I have studied that moment with fracking in Appalachia, Uber and Lyft, food delivery apps, sidewalk delivery robots, billion-dollar smart city megaprojects, and now artificial intelligence. The technologies differ. The pattern repeats. A company shows up with a product, residents feel the effects first, and city hall is left to respond with tools built for a different era.</p>
@@ -250,6 +301,11 @@
         <a class="title" href="https://doi.org/10.1016/j.cities.2026.107563">Why Smart City Megaprojects Failed: Learning from the Past and Planning for the Future</a>
         <p class="meta">With Nathan Olmstead and Zachary Spicer. <i>Cities</i>, 2026.</p>
         <p class="what">The comparative study the book grew from, scoring ten megaprojects against one framework.</p>
+      </li>
+      <li>
+        <a class="title" href="https://doi.org/10.1080/01944363.2026.2710901">Something Wired This Way Comes: What Fracking Taught Planners That Data Center Communities Need to Learn</a>
+        <p class="meta"><i>Journal of the American Planning Association</i>, 2026.</p>
+        <p class="what">What the fracking boom taught local governments, and why communities facing AI data centers need those lessons now.</p>
       </li>
       <li>
         <a class="title" href="https://doi.org/10.1177/10780874231222243">Examining the Smart City Generational Model: Conceptualizations, Implementations, and Infrastructure Canada’s Smart City Challenge</a>
